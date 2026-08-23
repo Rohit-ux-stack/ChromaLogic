@@ -1,0 +1,8 @@
+{
+  "name": "DataPulse_Version2",
+  "description": "ChromaLogic — Rohit Banerjee official portfolio with real-time Firestore synchronization and secure admin command vault.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

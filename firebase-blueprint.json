@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "profile": {
+      "title": "Profile",
+      "description": "Singleton portfolio profile information for Rohit Banerjee",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["profile"] },
+        "name": { "type": "string", "maxLength": 100 },
+        "tagline": { "type": "string", "maxLength": 300 },
+        "bio": { "type": "string", "maxLength": 5000 },
+        "photoUrl": { "type": "string", "maxLength": 1048576 },
+        "ogBannerUrl": { "type": "string", "maxLength": 1048576 },
+        "email": { "type": "string", "maxLength": 200 },
+        "location": { "type": "string", "maxLength": 200 },
+        "skills": { "type": "string", "maxLength": 2000 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["type"]
+    },
+    "project": {
+      "title": "Project",
+      "description": "Portfolio project item with base64 blob screenshot",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["project"] },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "imageUrl": { "type": "string", "maxLength": 1048576 },
+        "githubUrl": { "type": "string", "maxLength": 1000 },
+        "youtubeUrl": { "type": "string", "maxLength": 1000 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "title", "description", "githubUrl"]
+    },
+    "design": {
+      "title": "Design",
+      "description": "Graphic design portfolio item with base64 image artwork",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["design"] },
+        "title": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "imageUrl": { "type": "string", "maxLength": 1048576 },
+        "clientOrTool": { "type": "string", "maxLength": 200 },
+        "projectUrl": { "type": "string", "maxLength": 1000 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "title", "imageUrl"]
+    },
+    "video": {
+      "title": "Video",
+      "description": "Featured video showcase",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["video"] },
+        "title": { "type": "string", "maxLength": 200 },
+        "youtubeUrl": { "type": "string", "maxLength": 1000 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "title", "youtubeUrl"]
+    },
+    "social": {
+      "title": "Social",
+      "description": "Social media platform link",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["social"] },
+        "socialPlatform": { "type": "string", "enum": ["GitHub", "LinkedIn", "YouTube", "Instagram", "Twitter/X", "Other"] },
+        "socialUrl": { "type": "string", "maxLength": 1000 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "socialPlatform", "socialUrl"]
+    },
+    "resume": {
+      "title": "Resume",
+      "description": "Singleton resume link document",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["resume"] },
+        "resumeUrl": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "resumeUrl"]
+    }
+  },
+  "firestore": {
+    "/content/{docId}": {
+      "schema": "profile",
+      "description": "Public and admin portfolio content store (profile, projects, videos, socials, resume)"
+    }
+  }
+}
