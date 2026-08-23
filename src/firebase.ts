@@ -37,7 +37,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Bind Firestore instance with specific databaseId if provisioned
-const databaseId = import.meta.env.VITE_FIREBASE_DATABASE_ID || firebaseConfigJson.firestoreDatabaseId || '(default)';
+const databaseId = '(default)';
 export const db = databaseId && databaseId !== '(default)' 
   ? getFirestore(app, databaseId) 
   : getFirestore(app);
