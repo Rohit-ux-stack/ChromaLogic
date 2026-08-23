@@ -650,6 +650,12 @@ function ProfileAdminTab({
   const [email, setEmail] = useState('');
   const [location, setLocation] = useState('');
   const [skills, setSkills] = useState('');
+  const [stat1Title, setStat1Title] = useState('');
+  const [stat1Desc, setStat1Desc] = useState('');
+  const [stat2Title, setStat2Title] = useState('');
+  const [stat2Desc, setStat2Desc] = useState('');
+  const [stat3Title, setStat3Title] = useState('');
+  const [stat3Desc, setStat3Desc] = useState('');
   const [saving, setSaving] = useState(false);
 
   // Load existing profile when available
@@ -663,6 +669,12 @@ function ProfileAdminTab({
       setEmail(initialProfile.email || '');
       setLocation(initialProfile.location || '');
       setSkills(initialProfile.skills || '');
+      setStat1Title(initialProfile.stat1Title || '');
+      setStat1Desc(initialProfile.stat1Desc || '');
+      setStat2Title(initialProfile.stat2Title || '');
+      setStat2Desc(initialProfile.stat2Desc || '');
+      setStat3Title(initialProfile.stat3Title || '');
+      setStat3Desc(initialProfile.stat3Desc || '');
     }
   }, [initialProfile]);
 
@@ -683,6 +695,12 @@ function ProfileAdminTab({
         email: email.trim(),
         location: location.trim(),
         skills: skills.trim(),
+        stat1Title: stat1Title.trim(),
+        stat1Desc: stat1Desc.trim(),
+        stat2Title: stat2Title.trim(),
+        stat2Desc: stat2Desc.trim(),
+        stat3Title: stat3Title.trim(),
+        stat3Desc: stat3Desc.trim(),
         updatedAt: new Date().toISOString(),
       };
 
@@ -825,6 +843,28 @@ function ProfileAdminTab({
             placeholder="Python, TensorFlow, React, SQL, Cloud Architecture"
             className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-400 min-h-[44px]"
           />
+        </div>
+
+        {/* Highlight Stats Configuration */}
+        <div className="pt-6 border-t border-white/10 space-y-4">
+          <div className="text-xs font-mono text-purple-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+            <span>3-Item Highlights / Stats Bar</span>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input type="text" value={stat1Title} onChange={(e) => setStat1Title(e.target.value)} placeholder="Stat 1 Title (e.g. Full-Stack)" className="px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none" />
+            <input type="text" value={stat1Desc} onChange={(e) => setStat1Desc(e.target.value)} placeholder="Stat 1 Desc (e.g. Cloud Architecture)" className="px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input type="text" value={stat2Title} onChange={(e) => setStat2Title(e.target.value)} placeholder="Stat 2 Title" className="px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none" />
+            <input type="text" value={stat2Desc} onChange={(e) => setStat2Desc(e.target.value)} placeholder="Stat 2 Desc" className="px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input type="text" value={stat3Title} onChange={(e) => setStat3Title(e.target.value)} placeholder="Stat 3 Title" className="px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none" />
+            <input type="text" value={stat3Desc} onChange={(e) => setStat3Desc(e.target.value)} placeholder="Stat 3 Desc" className="px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none" />
+          </div>
         </div>
 
         {/* Submit */}
