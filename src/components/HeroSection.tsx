@@ -20,8 +20,8 @@ export function HeroSection({ profile, resume }: HeroSectionProps) {
     registerSecretTap('B', () => navigate('/admin'));
   };
 
-  const displayName = profile?.name?.trim() || 'Rohit Banerjee';
-  const roleSubheadline = profile?.tagline?.trim() || 'Full-Stack Developer & UI/UX Specialist';
+  const displayName = profile?.name?.trim();
+  const roleSubheadline = profile?.tagline?.trim();
   const hasBio = Boolean(profile?.bio?.trim());
   const hasPhoto = Boolean(profile?.photoUrl?.trim()) && !photoError;
   const hasEmail = Boolean(profile?.email?.trim());
