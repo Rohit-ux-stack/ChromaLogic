@@ -68,6 +68,13 @@ export function usePortfolioData(): PortfolioData {
               location: docData.location || '',
               skills: docData.skills || '',
               updatedAt: docData.updatedAt || '',
+              // Custom Stats Bar Fields
+              stat1Title: docData.stat1Title || '',
+              stat1Desc: docData.stat1Desc || '',
+              stat2Title: docData.stat2Title || '',
+              stat2Desc: docData.stat2Desc || '',
+              stat3Title: docData.stat3Title || '',
+              stat3Desc: docData.stat3Desc || '',
             };
           } else if (type === 'project') {
             projects.push({
