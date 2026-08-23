@@ -12,6 +12,13 @@ export interface ProfileData {
   location?: string;
   skills?: string;
   updatedAt?: string;
+  // Custom Stats Bar Fields
+  stat1Title?: string;
+  stat1Desc?: string;
+  stat2Title?: string;
+  stat2Desc?: string;
+  stat3Title?: string;
+  stat3Desc?: string;
 }
 
 export interface ProjectData {
@@ -73,4 +80,3 @@ export interface PortfolioData {
   resume: ResumeData | null;
   loading: boolean;
 }
-
