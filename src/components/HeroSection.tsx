@@ -135,16 +135,16 @@ export function HeroSection({ profile, resume }: HeroSectionProps) {
         {/* 3-Item Highlights Stats Bar in Liquid Glass with 3D Hover Depth */}
         <div id="hero-stats-bar" className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 my-8 font-sans-body">
           <div className="p-5 rounded-2xl liquid-glass-subcard cursor-default flex flex-col justify-center">
-            <div className="text-lg sm:text-xl font-serif-heading font-bold text-[#2C241B]">Full-Stack</div>
-            <div className="text-xs text-[#7A6F62] font-medium mt-1">Cloud Architecture & Modern APIs</div>
+            <div className="text-lg sm:text-xl font-serif-heading font-bold text-[#2C241B]">{profile?.stat1Title}</div>
+            <div className="text-xs text-[#7A6F62] font-medium mt-1">{profile?.stat1Desc}</div>
           </div>
           <div className="p-5 rounded-2xl liquid-glass-subcard cursor-default flex flex-col justify-center">
-            <div className="text-lg sm:text-xl font-serif-heading font-bold text-[#2C241B]">UI/UX Craft</div>
-            <div className="text-xs text-[#7A6F62] font-medium mt-1">Refined Typography & 3D Glass</div>
+            <div className="text-lg sm:text-xl font-serif-heading font-bold text-[#2C241B]">{profile?.stat2Title}</div>
+            <div className="text-xs text-[#7A6F62] font-medium mt-1">{profile?.stat2Desc}</div>
           </div>
           <div className="p-5 rounded-2xl liquid-glass-subcard cursor-default flex flex-col justify-center">
-            <div className="text-lg sm:text-xl font-serif-heading font-bold text-[#2C241B]">Production-Ready</div>
-            <div className="text-xs text-[#7A6F62] font-medium mt-1">Verified End-to-End Execution</div>
+            <div className="text-lg sm:text-xl font-serif-heading font-bold text-[#2C241B]">{profile?.stat3Title}</div>
+            <div className="text-xs text-[#7A6F62] font-medium mt-1">{profile?.stat3Desc}</div>
           </div>
         </div>
 
@@ -212,5 +212,3 @@ export function HeroSection({ profile, resume }: HeroSectionProps) {
     </section>
   );
 }
-
-
