@@ -32,7 +32,7 @@ export function VideosSection({ videos = [], onOpenVideo }: VideosSectionProps) 
               <span>DEMONSTRATIONS // MEDIA STREAM</span>
             </div>
             <h2 id="videos-heading" className="text-3xl sm:text-4xl font-serif-heading font-bold tracking-tight text-[#2C241B]">
-              Featured Videos
+              Edited Videos
             </h2>
           </div>
           <div className="text-xs text-[#7A6F62] font-mono px-3.5 py-1.5 rounded-full liquid-glass-pill self-start sm:self-auto flex items-center gap-2 font-sans-body">
