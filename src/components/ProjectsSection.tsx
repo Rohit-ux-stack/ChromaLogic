@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Github, Youtube, ExternalLink, Sparkles, FolderGit2 } from 'lucide-react';
+import { Github, Youtube, ExternalLink, Sparkles, FolderGit2, Eye } from 'lucide-react';
 import type { ProjectData } from '../types';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { TiltCard } from './TiltCard';
+import { ImageCarousel } from './ImageCarousel';
+import { ProjectModal } from './ProjectModal';
 
 interface ProjectsSectionProps {
   projects: ProjectData[];
@@ -12,6 +14,7 @@ interface ProjectsSectionProps {
 export function ProjectsSection({ projects, onOpenVideo }: ProjectsSectionProps) {
   const { ref: sectionRef, isRevealed } = useScrollReveal({ threshold: 0.1 });
   const hasProjects = Boolean(projects && projects.length > 0);
+  const [activeProject, setActiveProject] = useState<ProjectData | null>(null);
 
   return (
     <section 
@@ -49,6 +52,7 @@ export function ProjectsSection({ projects, onOpenVideo }: ProjectsSectionProps)
                 index={idx}
                 isParentRevealed={isRevealed}
                 onOpenVideo={onOpenVideo}
+                onOpenDetails={(p) => setActiveProject(p)}
               />
             ))}
           </div>
@@ -66,6 +70,12 @@ export function ProjectsSection({ projects, onOpenVideo }: ProjectsSectionProps)
           </div>
         )}
       </div>
+
+      <ProjectModal
+        project={activeProject}
+        onClose={() => setActiveProject(null)}
+        onOpenVideo={onOpenVideo}
+      />
     </section>
   );
 }
@@ -76,6 +86,7 @@ interface ProjectCardProps {
   index: number;
   isParentRevealed: boolean;
   onOpenVideo?: (url: string) => void;
+  onOpenDetails: (project: ProjectData) => void;
 }
 
 function ProjectCard({
@@ -83,10 +94,10 @@ function ProjectCard({
   index,
   isParentRevealed,
   onOpenVideo,
+  onOpenDetails,
 }: ProjectCardProps) {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const hasImage = Boolean(project.imageUrl?.trim()) && !imageError;
+  const images = project.images && project.images.length > 0 ? project.images : project.imageUrl ? [project.imageUrl] : [];
+  const hasImage = images.length > 0;
   const hasYouTube = Boolean(project.youtubeUrl?.trim());
   const staggerClass = `stagger-${(index % 6) + 1}`;
 
@@ -104,34 +115,26 @@ function ProjectCard({
           {/* Top Specular Line */}
           <div className="h-1 w-full bg-gradient-to-r from-[#D96C51] via-[#F4CBAF] to-white opacity-90 group-hover:opacity-100 transition-opacity" />
 
-          {/* Screenshot / Image Blob (with Shimmer Skeleton Loading) */}
+          {/* Screenshot Carousel (click opens the full project details modal) */}
           {hasImage && (
-            <div className="aspect-video w-full overflow-hidden bg-[#FAF7F2]/60 relative border-b border-white/60">
-              {/* Shimmer Skeleton while loading */}
-              {!imageLoaded && (
-                <div className="absolute inset-0 shimmer-skeleton flex items-center justify-center z-0">
-                  <div className="flex flex-col items-center gap-2 text-[#7A6F62]/40">
-                    <div className="w-8 h-8 rounded-lg bg-[#EFE8DF]/60 flex items-center justify-center animate-pulse">
-                      <FolderGit2 className="w-4 h-4 text-[#D96C51]/60" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <img
-                src={project.imageUrl}
+            <div className="border-b border-white/60 relative">
+              <ImageCarousel
+                images={images}
                 alt={project.title}
-                onLoad={() => setImageLoaded(true)}
-                onError={() => {
-                  setImageError(true);
-                  setImageLoaded(true);
-                }}
-                className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-105 relative z-1 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
-                referrerPolicy="no-referrer"
-                loading="lazy"
+                aspectClassName="aspect-video"
+                onImageClick={() => onOpenDetails(project)}
               />
+              <button
+                type="button"
+                onClick={() => onOpenDetails(project)}
+                className="absolute inset-0 z-[5] flex items-center justify-center bg-[#2C241B]/0 group-hover:bg-[#2C241B]/25 transition-colors opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
+                aria-label={`View details for ${project.title}`}
+              >
+                <span className="px-4 py-2 rounded-full bg-white/95 text-[#2C241B] text-xs font-semibold flex items-center gap-1.5 shadow-lg">
+                  <Eye className="w-3.5 h-3.5 text-[#D96C51]" />
+                  <span>View Details</span>
+                </span>
+              </button>
             </div>
           )}
 
@@ -144,22 +147,35 @@ function ProjectCard({
                   <span>PROJECT #{project.order || index + 1}</span>
                 </div>
               </div>
-              <h3 className="text-xl sm:text-2xl font-serif-heading font-bold text-[#2C241B] group-hover:text-[#D96C51] transition-colors tracking-tight">
+              <h3
+                onClick={() => onOpenDetails(project)}
+                className="text-xl sm:text-2xl font-serif-heading font-bold text-[#2C241B] group-hover:text-[#D96C51] transition-colors tracking-tight cursor-pointer"
+              >
                 {project.title}
               </h3>
-              <p className="text-sm text-[#7A6F62] font-normal leading-[1.7] whitespace-pre-line font-sans-body">
+              <p className="text-sm text-[#7A6F62] font-normal leading-[1.7] whitespace-pre-line font-sans-body line-clamp-3">
                 {project.description}
               </p>
             </div>
 
             {/* Action Links */}
             <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onOpenDetails(project)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl liquid-glass-pill text-[#2C241B] text-xs font-semibold transition-all cursor-pointer min-h-[44px] touch-target active:scale-98"
+              >
+                <Eye className="w-4 h-4 text-[#D96C51]" />
+                <span>View Details</span>
+              </button>
+
               {project.githubUrl && (
                 <a
                   id={`project-github-${project.id}`}
                   href={project.githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2C241B] hover:bg-[#1a1510] text-white text-xs font-semibold shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2C241B] min-h-[44px] touch-target active:scale-98"
                 >
                   <Github className="w-4 h-4 text-white/85" />
@@ -171,7 +187,10 @@ function ProjectCard({
               {hasYouTube && (
                 <button
                   id={`project-youtube-${project.id}`}
-                  onClick={() => onOpenVideo && onOpenVideo(project.youtubeUrl!)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenVideo && onOpenVideo(project.youtubeUrl!);
+                  }}
                   className="btn-terracotta-subtle inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold shadow-2xs transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96C51] min-h-[44px] touch-target"
                 >
                   <Youtube className="w-4 h-4 text-[#D96C51]" />
