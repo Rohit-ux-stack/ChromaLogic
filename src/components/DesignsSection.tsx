@@ -3,6 +3,7 @@ import { Palette, ExternalLink, Sparkles, X, Eye, Layers } from 'lucide-react';
 import type { DesignData } from '../types';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { TiltCard } from './TiltCard';
+import { ImageCarousel } from './ImageCarousel';
 
 interface DesignsSectionProps {
   designs: DesignData[];
@@ -144,12 +145,30 @@ export function DesignsSection({ designs = [] }: DesignsSectionProps) {
 
             {/* Modal Image Area */}
             <div className="flex-1 overflow-auto bg-[#FAF7F2]/50 p-4 flex items-center justify-center min-h-[300px] max-h-[65vh]">
-              <img
-                src={activePreview.imageUrl}
-                alt={activePreview.title}
-                className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-lg border border-white/40"
-                referrerPolicy="no-referrer"
-              />
+              {(() => {
+                const modalImages =
+                  activePreview.images && activePreview.images.length > 0
+                    ? activePreview.images
+                    : activePreview.imageUrl
+                    ? [activePreview.imageUrl]
+                    : [];
+                return modalImages.length > 1 ? (
+                  <ImageCarousel
+                    images={modalImages}
+                    alt={activePreview.title}
+                    aspectClassName="aspect-[4/3]"
+                    className="w-full max-w-2xl rounded-xl overflow-hidden shadow-lg border border-white/40"
+                    showCounter
+                  />
+                ) : (
+                  <img
+                    src={modalImages[0]}
+                    alt={activePreview.title}
+                    className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-lg border border-white/40"
+                    referrerPolicy="no-referrer"
+                  />
+                );
+              })()}
             </div>
 
             {/* Modal Footer Description */}
@@ -204,6 +223,8 @@ function DesignCard({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const staggerClass = `stagger-${(index % 6) + 1}`;
+  const coverImage = (design.images && design.images.length > 0 ? design.images[0] : design.imageUrl) || '';
+  const hasMultipleImages = Boolean(design.images && design.images.length > 1);
 
   return (
     <div
@@ -224,7 +245,7 @@ function DesignCard({
             className="aspect-[4/3] w-full overflow-hidden bg-[#FAF7F2]/60 relative cursor-pointer group/img border-b border-white/60"
             onClick={() => onPreview(design)}
           >
-            {!imageError && design.imageUrl ? (
+            {!imageError && coverImage ? (
               <>
                 {/* Shimmer Skeleton while loading */}
                 {!imageLoaded && (
@@ -238,7 +259,7 @@ function DesignCard({
                 )}
 
                 <img
-                  src={design.imageUrl}
+                  src={coverImage}
                   alt={design.title}
                   onLoad={() => setImageLoaded(true)}
                   onError={() => {
@@ -251,6 +272,13 @@ function DesignCard({
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
+
+                {hasMultipleImages && (
+                  <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-mono font-semibold flex items-center gap-1">
+                    <Layers className="w-3 h-3" />
+                    <span>{design.images!.length}</span>
+                  </div>
+                )}
               </>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-[#7A6F62] bg-[#FAF7F2] p-4 text-center">
