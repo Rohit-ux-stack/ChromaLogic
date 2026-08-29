@@ -46,10 +46,10 @@ import {
   X,
   Sparkles,
   Palette,
-  RotateCcw,
 } from 'lucide-react';
 import { getYouTubeThumbnail } from '../utils/youtube';
 import { ImageBlobUploader } from './ImageBlobUploader';
+import { MultiImageUploader } from './MultiImageUploader';
 import { formatAuthError } from '../utils/authErrors';
 import { DesignsAdminTab } from './DesignsAdminTab';
 
@@ -753,7 +753,6 @@ function ProfileAdminTab({
           value={photoUrl}
           onChange={(newBlob) => setPhotoUrl(newBlob)}
           previewShape="circle"
-          maxDimension={800}
           recommendedAspect="1:1"
         />
 
@@ -765,7 +764,6 @@ function ProfileAdminTab({
           value={ogBannerUrl}
           onChange={(newBlob) => setOgBannerUrl(newBlob)}
           previewShape="banner"
-          maxDimension={1200}
           recommendedAspect="1200:630"
         />
 
@@ -899,9 +897,31 @@ interface ProjectDraft {
   title: string;
   description: string;
   imageUrl: string;
+  images: string[];
+  techStack: string;
+  purpose: string;
+  story: string;
+  howItWorks: string;
   githubUrl: string;
   youtubeUrl: string;
   order: number;
+}
+
+function emptyProjectDraft(id: string, order: number): ProjectDraft {
+  return {
+    id,
+    title: '',
+    description: '',
+    imageUrl: '',
+    images: [],
+    techStack: '',
+    purpose: '',
+    story: '',
+    howItWorks: '',
+    githubUrl: '',
+    youtubeUrl: '',
+    order,
+  };
 }
 
 function ProjectsAdminTab({
@@ -913,15 +933,7 @@ function ProjectsAdminTab({
 }) {
   // Dynamic multiple form blocks state
   const [drafts, setDrafts] = useState<ProjectDraft[]>([
-    {
-      id: `draft-proj-${Date.now()}`,
-      title: '',
-      description: '',
-      imageUrl: '',
-      githubUrl: '',
-      youtubeUrl: '',
-      order: projects.length + 1,
-    },
+    emptyProjectDraft(`draft-proj-${Date.now()}`, projects.length + 1),
   ]);
   const [submittingDraftIds, setSubmittingDraftIds] = useState<Set<string>>(new Set());
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -929,15 +941,7 @@ function ProjectsAdminTab({
   const addNewDraft = () => {
     setDrafts((prev) => [
       ...prev,
-      {
-        id: `draft-proj-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        title: '',
-        description: '',
-        imageUrl: '',
-        githubUrl: '',
-        youtubeUrl: '',
-        order: projects.length + prev.length + 1,
-      },
+      emptyProjectDraft(`draft-proj-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, projects.length + prev.length + 1),
     ]);
   };
 
@@ -945,23 +949,13 @@ function ProjectsAdminTab({
     setDrafts((prev) => {
       const remaining = prev.filter((d) => d.id !== id);
       if (remaining.length === 0) {
-        return [
-          {
-            id: `draft-proj-${Date.now()}`,
-            title: '',
-            description: '',
-            imageUrl: '',
-            githubUrl: '',
-            youtubeUrl: '',
-            order: projects.length + 1,
-          },
-        ];
+        return [emptyProjectDraft(`draft-proj-${Date.now()}`, projects.length + 1)];
       }
       return remaining;
     });
   };
 
-  const updateDraft = (id: string, field: keyof ProjectDraft, value: string | number) => {
+  const updateDraft = (id: string, field: keyof ProjectDraft, value: string | number | string[]) => {
     setDrafts((prev) =>
       prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
     );
@@ -971,7 +965,11 @@ function ProjectsAdminTab({
   const [editingProject, setEditingProject] = useState<ProjectData | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [editTechStack, setEditTechStack] = useState('');
+  const [editPurpose, setEditPurpose] = useState('');
+  const [editStory, setEditStory] = useState('');
+  const [editHowItWorks, setEditHowItWorks] = useState('');
   const [editGithubUrl, setEditGithubUrl] = useState('');
   const [editYoutubeUrl, setEditYoutubeUrl] = useState('');
   const [editOrder, setEditOrder] = useState(0);
@@ -981,7 +979,11 @@ function ProjectsAdminTab({
     setEditingProject(proj);
     setEditTitle(proj.title);
     setEditDescription(proj.description || '');
-    setEditImageUrl(proj.imageUrl || '');
+    setEditImages(proj.images && proj.images.length > 0 ? proj.images : proj.imageUrl ? [proj.imageUrl] : []);
+    setEditTechStack(proj.techStack || '');
+    setEditPurpose(proj.purpose || '');
+    setEditStory(proj.story || '');
+    setEditHowItWorks(proj.howItWorks || '');
     setEditGithubUrl(proj.githubUrl || '');
     setEditYoutubeUrl(proj.youtubeUrl || '');
     setEditOrder(proj.order);
@@ -1009,7 +1011,12 @@ function ProjectsAdminTab({
           type: 'project',
           title: editTitle.trim(),
           description: editDescription.trim(),
-          imageUrl: editImageUrl.trim(),
+          imageUrl: editImages[0] || '',
+          images: editImages,
+          techStack: editTechStack.trim(),
+          purpose: editPurpose.trim(),
+          story: editStory.trim(),
+          howItWorks: editHowItWorks.trim(),
           githubUrl: editGithubUrl.trim(),
           youtubeUrl: editYoutubeUrl.trim(),
           order: Number(editOrder) || 0,
@@ -1041,7 +1048,12 @@ function ProjectsAdminTab({
         type: 'project',
         title: draft.title.trim(),
         description: draft.description.trim(),
-        imageUrl: draft.imageUrl.trim(),
+        imageUrl: draft.images[0] || '',
+        images: draft.images,
+        techStack: draft.techStack.trim(),
+        purpose: draft.purpose.trim(),
+        story: draft.story.trim(),
+        howItWorks: draft.howItWorks.trim(),
         githubUrl: draft.githubUrl.trim(),
         youtubeUrl: draft.youtubeUrl.trim(),
         order: Number(draft.order) || 0,
@@ -1134,15 +1146,64 @@ function ProjectsAdminTab({
               />
             </div>
 
-            <ImageBlobUploader
-              idPrefix={`edit-project-image-${editingProject.id}`}
-              label="Project Screenshot / Diagram (Base64 Blob Storage - Optional)"
-              helperText="Upload a new screenshot or diagram. Stored directly as a base64 Blob in Firestore."
-              value={editImageUrl}
-              onChange={(newBlob) => setEditImageUrl(newBlob)}
-              previewShape="video"
-              maxDimension={1200}
-              recommendedAspect="16:9"
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                Tech Stack (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={editTechStack}
+                onChange={(e) => setEditTechStack(e.target.value)}
+                placeholder="e.g. React, Node.js, MongoDB, Tailwind"
+                className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                Purpose / Objective (Optional)
+              </label>
+              <textarea
+                rows={2}
+                value={editPurpose}
+                onChange={(e) => setEditPurpose(e.target.value)}
+                placeholder="What problem does this project solve?"
+                className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                Story Behind Its Creation (Optional)
+              </label>
+              <textarea
+                rows={3}
+                value={editStory}
+                onChange={(e) => setEditStory(e.target.value)}
+                placeholder="What inspired this project, and how did it come together?"
+                className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                How It Works (Optional)
+              </label>
+              <textarea
+                rows={3}
+                value={editHowItWorks}
+                onChange={(e) => setEditHowItWorks(e.target.value)}
+                placeholder="Explain the architecture, flow, or mechanics of how it actually works..."
+                className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none"
+              />
+            </div>
+
+            <MultiImageUploader
+              idPrefix={`edit-project-images-${editingProject.id}`}
+              label="Project Screenshots (Carousel Images)"
+              helperText="Upload, crop, and reorder the screenshots visitors will browse through in the project carousel & popup. The first image is the cover."
+              value={editImages}
+              onChange={setEditImages}
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1310,16 +1371,65 @@ function ProjectsAdminTab({
                   />
                 </div>
 
-                {/* Project Showcase Image / Screenshot Blob Upload */}
-                <ImageBlobUploader
-                  idPrefix={`project-image-${draft.id}`}
-                  label="Project Showcase Screenshot / Diagram (Base64 Blob Storage - Optional)"
-                  helperText="Upload a screenshot, mockup, or architecture diagram. Stored directly as an optimized base64 Blob in Firestore."
-                  value={draft.imageUrl}
-                  onChange={(newBlob) => updateDraft(draft.id, 'imageUrl', newBlob)}
-                  previewShape="video"
-                  maxDimension={1200}
-                  recommendedAspect="16:9"
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                    Tech Stack (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={draft.techStack}
+                    onChange={(e) => updateDraft(draft.id, 'techStack', e.target.value)}
+                    placeholder="e.g. React, Node.js, MongoDB, Tailwind"
+                    className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none min-h-[44px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                    Purpose / Objective (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={draft.purpose}
+                    onChange={(e) => updateDraft(draft.id, 'purpose', e.target.value)}
+                    placeholder="What problem does this project solve?"
+                    className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                    Story Behind Its Creation (Optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={draft.story}
+                    onChange={(e) => updateDraft(draft.id, 'story', e.target.value)}
+                    placeholder="What inspired this project, and how did it come together?"
+                    className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                    How It Works (Optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={draft.howItWorks}
+                    onChange={(e) => updateDraft(draft.id, 'howItWorks', e.target.value)}
+                    placeholder="Explain the architecture, flow, or mechanics of how it actually works..."
+                    className="w-full px-4 py-3 rounded-2xl glass-surface-subtle text-white text-sm focus:border-purple-400 focus:outline-none"
+                  />
+                </div>
+
+                {/* Project Showcase Multi-Image Carousel Upload */}
+                <MultiImageUploader
+                  idPrefix={`project-images-${draft.id}`}
+                  label="Project Screenshots (Carousel Images)"
+                  helperText="Select multiple screenshots, mockups, or diagrams at once, then crop/rotate each individually. The first image becomes the cover."
+                  value={draft.images}
+                  onChange={(imgs) => updateDraft(draft.id, 'images', imgs)}
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
