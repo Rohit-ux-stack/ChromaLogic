@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Palette, Plus, Trash2, Edit2, X, Save, Sparkles, ExternalLink, RefreshCw, Layers } from 'lucide-react';
+import { Palette, Plus, Trash2, Edit2, X, Save, Sparkles, ExternalLink, RefreshCw } from 'lucide-react';
 import { db, collection, doc, setDoc, addDoc, deleteDoc, handleFirestoreError, OperationType } from '../firebase';
 import type { DesignData } from '../types';
-import { ImageBlobUploader } from './ImageBlobUploader';
+import { MultiImageUploader } from './MultiImageUploader';
 
 interface DesignsAdminTabProps {
   designs: DesignData[];
@@ -15,24 +15,28 @@ interface DesignDraft {
   category: string;
   clientOrTool: string;
   description: string;
-  imageUrl: string;
+  images: string[];
   projectUrl: string;
   order: number;
+}
+
+function emptyDesignDraft(id: string, order: number): DesignDraft {
+  return {
+    id,
+    title: '',
+    category: 'Graphic Design',
+    clientOrTool: '',
+    description: '',
+    images: [],
+    projectUrl: '',
+    order,
+  };
 }
 
 export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
   // Dynamic Multiple Form Blocks State
   const [drafts, setDrafts] = useState<DesignDraft[]>([
-    {
-      id: `draft-design-${Date.now()}`,
-      title: '',
-      category: 'Graphic Design',
-      clientOrTool: '',
-      description: '',
-      imageUrl: '',
-      projectUrl: '',
-      order: designs.length + 1,
-    },
+    emptyDesignDraft(`draft-design-${Date.now()}`, designs.length + 1),
   ]);
   const [submittingDraftIds, setSubmittingDraftIds] = useState<Set<string>>(new Set());
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -40,16 +44,7 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
   const addNewDraft = () => {
     setDrafts((prev) => [
       ...prev,
-      {
-        id: `draft-design-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        title: '',
-        category: 'Graphic Design',
-        clientOrTool: '',
-        description: '',
-        imageUrl: '',
-        projectUrl: '',
-        order: designs.length + prev.length + 1,
-      },
+      emptyDesignDraft(`draft-design-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, designs.length + prev.length + 1),
     ]);
   };
 
@@ -57,24 +52,13 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
     setDrafts((prev) => {
       const remaining = prev.filter((d) => d.id !== id);
       if (remaining.length === 0) {
-        return [
-          {
-            id: `draft-design-${Date.now()}`,
-            title: '',
-            category: 'Graphic Design',
-            clientOrTool: '',
-            description: '',
-            imageUrl: '',
-            projectUrl: '',
-            order: designs.length + 1,
-          },
-        ];
+        return [emptyDesignDraft(`draft-design-${Date.now()}`, designs.length + 1)];
       }
       return remaining;
     });
   };
 
-  const updateDraft = (id: string, field: keyof DesignDraft, value: string | number) => {
+  const updateDraft = (id: string, field: keyof DesignDraft, value: string | number | string[]) => {
     setDrafts((prev) =>
       prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
     );
@@ -86,7 +70,7 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
   const [editCategory, setEditCategory] = useState('');
   const [editClientOrTool, setEditClientOrTool] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImages, setEditImages] = useState<string[]>([]);
   const [editProjectUrl, setEditProjectUrl] = useState('');
   const [editOrder, setEditOrder] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -97,7 +81,7 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
     setEditCategory(design.category || 'Graphic Design');
     setEditClientOrTool(design.clientOrTool || '');
     setEditDescription(design.description || '');
-    setEditImageUrl(design.imageUrl || '');
+    setEditImages(design.images && design.images.length > 0 ? design.images : design.imageUrl ? [design.imageUrl] : []);
     setEditProjectUrl(design.projectUrl || '');
     setEditOrder(design.order || 0);
   };
@@ -126,7 +110,8 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
           category: editCategory.trim() || 'Graphic Design',
           clientOrTool: editClientOrTool.trim(),
           description: editDescription.trim(),
-          imageUrl: editImageUrl.trim(),
+          imageUrl: editImages[0] || '',
+          images: editImages,
           projectUrl: editProjectUrl.trim(),
           order: Number(editOrder) || 0,
           updatedAt: new Date().toISOString(),
@@ -159,7 +144,8 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
         category: draft.category.trim() || 'Graphic Design',
         clientOrTool: draft.clientOrTool.trim(),
         description: draft.description.trim(),
-        imageUrl: draft.imageUrl.trim(),
+        imageUrl: draft.images[0] || '',
+        images: draft.images,
         projectUrl: draft.projectUrl.trim(),
         order: Number(draft.order) || 0,
         createdAt: new Date().toISOString(),
@@ -277,15 +263,12 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
               />
             </div>
 
-            <ImageBlobUploader
-              idPrefix={`edit-design-image-${editingDesign.id}`}
-              label="Artwork Image (Base64 Blob Storage)"
-              helperText="Upload your design visual. Compressed and stored directly in Firestore."
-              value={editImageUrl}
-              onChange={(newBlob) => setEditImageUrl(newBlob)}
-              previewShape="rectangle"
-              maxDimension={1200}
-              recommendedAspect="4:3"
+            <MultiImageUploader
+              idPrefix={`edit-design-images-${editingDesign.id}`}
+              label="Artwork Images (Carousel)"
+              helperText="Upload, crop, and reorder the visuals visitors will browse through. The first image is the cover."
+              value={editImages}
+              onChange={setEditImages}
             />
 
             <div>
@@ -466,15 +449,12 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
                   />
                 </div>
 
-                <ImageBlobUploader
-                  idPrefix={`new-design-image-${draft.id}`}
-                  label="Artwork Image (Base64 Blob Storage - Optional)"
-                  helperText="Upload your design visual. It will be resized/compressed and stored as a base64 Blob directly in Firestore."
-                  value={draft.imageUrl}
-                  onChange={(newBlob) => updateDraft(draft.id, 'imageUrl', newBlob)}
-                  previewShape="rectangle"
-                  maxDimension={1200}
-                  recommendedAspect="4:3"
+                <MultiImageUploader
+                  idPrefix={`new-design-images-${draft.id}`}
+                  label="Artwork Images (Carousel)"
+                  helperText="Select multiple visuals at once, then crop/rotate each individually. The first image becomes the cover."
+                  value={draft.images}
+                  onChange={(imgs) => updateDraft(draft.id, 'images', imgs)}
                 />
 
                 <div>
