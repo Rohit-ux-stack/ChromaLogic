@@ -27,6 +27,12 @@ export interface ProjectData {
   title: string;
   description: string;
   imageUrl?: string;
+  /** Ordered array of cropped/processed base64 blob images for the project carousel. images[0] is the cover. */
+  images?: string[];
+  techStack?: string;
+  purpose?: string;
+  story?: string;
+  howItWorks?: string;
   githubUrl: string;
   youtubeUrl?: string;
   order: number;
@@ -40,6 +46,8 @@ export interface DesignData {
   category: string;
   description: string;
   imageUrl: string;
+  /** Ordered array of cropped/processed base64 blob images for the design carousel. images[0] is the cover. */
+  images?: string[];
   clientOrTool?: string;
   projectUrl?: string;
   order: number;
