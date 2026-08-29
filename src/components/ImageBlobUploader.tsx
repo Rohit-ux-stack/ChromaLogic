@@ -7,10 +7,10 @@ import {
   AlertCircle, 
   FileCode, 
   Sparkles,
-  Layers
+  Pencil,
 } from 'lucide-react';
 import { formatBytes } from '../utils/imageBlob';
-import { useImageUpload, type ImageUploadOptions } from '../hooks/useImageUpload';
+import { ImageCropperModal, type CropResult } from './ImageCropperModal';
 
 export interface ImageBlobUploaderProps {
   idPrefix: string;
@@ -19,11 +19,11 @@ export interface ImageBlobUploaderProps {
   value: string;
   onChange: (blobDataUrl: string) => void;
   previewShape?: 'circle' | 'video' | 'banner' | 'rectangle';
-  maxDimension?: number;
-  quality?: number;
   recommendedAspect?: string;
-  autoSaveOptions?: ImageUploadOptions;
-  onSaveSuccess?: () => void;
+  /** Force a specific crop aspect ratio (e.g. 1 for a square avatar). Defaults are inferred from previewShape when omitted. */
+  cropAspectRatio?: number | null;
+  /** Disables the Instagram-style crop step entirely (falls back to a plain, uncropped upload). */
+  disableCropper?: boolean;
 }
 
 export function ImageBlobUploader({
@@ -33,27 +33,24 @@ export function ImageBlobUploader({
   value,
   onChange,
   previewShape = 'rectangle',
-  maxDimension = 1200,
-  quality = 0.85,
   recommendedAspect,
-  autoSaveOptions,
-  onSaveSuccess,
+  cropAspectRatio,
+  disableCropper = false,
 }: ImageBlobUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [imageMeta, setImageMeta] = useState<{ size?: number; width?: number; height?: number } | null>(null);
   const [showUrlFallback, setShowUrlFallback] = useState(false);
-
-  const {
-    isUploading,
-    isSavingToFirestore,
-    error,
-    uploadAndSave,
-    reset,
-  } = useImageUpload();
+  const [pendingSource, setPendingSource] = useState<string | null>(null);
+  const [isReediting, setIsReediting] = useState(false);
+  const [isReading, setIsReading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const hasValue = Boolean(value && value.trim().length > 0);
   const isBlobDataUrl = value.startsWith('data:image/');
+
+  const isCircle = previewShape === 'circle';
+  const resolvedAspect = cropAspectRatio !== undefined ? cropAspectRatio : isCircle ? 1 : previewShape === 'banner' ? 1200 / 630 : previewShape === 'video' ? 16 / 9 : null;
 
   // Recalculate approximate meta if value exists as blob
   useEffect(() => {
@@ -63,27 +60,42 @@ export function ImageBlobUploader({
     }
   }, [value, isBlobDataUrl, imageMeta]);
 
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
   const handleFile = async (file: File) => {
+    setError(null);
+    setIsReading(true);
     try {
-      const result = await uploadAndSave(file, {
-        maxDimension,
-        quality,
-        ...autoSaveOptions,
-      });
-
-      onChange(result.dataUrl);
-      setImageMeta({
-        size: result.sizeBytes,
-        width: result.width,
-        height: result.height,
-      });
-
-      if (autoSaveOptions?.autoSaveToFirestore && onSaveSuccess) {
-        onSaveSuccess();
+      if (file.type === 'image/svg+xml' || disableCropper) {
+        // Vector art can't be raster-cropped meaningfully; keep a plain passthrough
+        const dataUrl = await readFileAsDataUrl(file);
+        onChange(dataUrl);
+        setImageMeta({ size: file.size });
+        return;
       }
+
+      const dataUrl = await readFileAsDataUrl(file);
+      setPendingSource(dataUrl);
     } catch (err) {
-      console.error('Image upload failed:', err);
+      console.error('Image read failed:', err);
+      setError('Failed to read the selected image. Please try a different file.');
+    } finally {
+      setIsReading(false);
     }
+  };
+
+  const handleCropComplete = (results: CropResult[]) => {
+    const result = results[0];
+    onChange(result.dataUrl);
+    setImageMeta({ size: Math.round((result.dataUrl.length * 3) / 4), width: result.width, height: result.height });
+    setPendingSource(null);
+    setIsReediting(false);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -118,10 +130,16 @@ export function ImageBlobUploader({
   const handleRemove = () => {
     onChange('');
     setImageMeta(null);
-    reset();
+    setError(null);
   };
 
-  const isBusy = isUploading || isSavingToFirestore;
+  const handleReeditCurrent = () => {
+    if (hasValue && isBlobDataUrl) {
+      setIsReediting(true);
+    }
+  };
+
+  const isBusy = isReading;
 
   return (
     <div className="space-y-3">
@@ -171,7 +189,7 @@ export function ImageBlobUploader({
             <div className="py-6 flex flex-col items-center gap-3">
               <RefreshCw className="w-8 h-8 text-purple-400 animate-spin" />
               <div className="text-xs font-mono text-purple-300 tracking-wider uppercase">
-                {isSavingToFirestore ? 'SYNCING BLOB TO FIRESTORE...' : 'ENCODING BASE64 BLOB DATA...'}
+                READING IMAGE...
               </div>
             </div>
           ) : (
@@ -254,7 +272,19 @@ export function ImageBlobUploader({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0 flex-wrap">
+              {!disableCropper && isBlobDataUrl && (
+                <button
+                  type="button"
+                  id={`${idPrefix}-edit-crop-btn`}
+                  onClick={handleReeditCurrent}
+                  disabled={isBusy}
+                  className="px-3.5 py-2 rounded-xl bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/30 hover:border-cyan-400/60 text-cyan-200 text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer min-h-[40px] touch-target"
+                >
+                  <Pencil className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>Edit Crop</span>
+                </button>
+              )}
               <button
                 type="button"
                 id={`${idPrefix}-replace-btn`}
@@ -315,6 +345,30 @@ export function ImageBlobUploader({
           </div>
         )}
       </div>
+
+      {/* Instagram-style crop step for a freshly-selected file */}
+      {pendingSource && (
+        <ImageCropperModal
+          sources={[pendingSource]}
+          title={isCircle ? 'Crop Avatar' : 'Crop Image'}
+          lockAspectRatio={resolvedAspect}
+          cropShape={isCircle ? 'circle' : 'rect'}
+          onCancel={() => setPendingSource(null)}
+          onComplete={handleCropComplete}
+        />
+      )}
+
+      {/* Re-edit crop for the currently saved image */}
+      {isReediting && hasValue && (
+        <ImageCropperModal
+          sources={[value]}
+          title={isCircle ? 'Edit Avatar Crop' : 'Edit Crop'}
+          lockAspectRatio={resolvedAspect}
+          cropShape={isCircle ? 'circle' : 'rect'}
+          onCancel={() => setIsReediting(false)}
+          onComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }
