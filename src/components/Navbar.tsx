@@ -10,7 +10,7 @@ interface NavbarProps {
   onHeightChange?: (height: number) => void;
 }
 
-export function Navbar({ portfolio, onHeightChange }: NavbarProps) {
+export function Navbar({ onHeightChange }: NavbarProps) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const isScrolling = useRef(false);
