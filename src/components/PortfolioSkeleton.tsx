@@ -1,4 +1,4 @@
-import { Play, Sparkles, FolderGit2, Palette, Film, Share2 } from 'lucide-react';
+import { Play, FolderGit2, Palette, Film, Share2 } from 'lucide-react';
 
 export function PortfolioSkeleton() {
   return (
