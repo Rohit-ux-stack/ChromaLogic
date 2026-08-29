@@ -20,7 +20,6 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  type User
 } from 'firebase/auth';
 import firebaseConfigJson from '../firebase-applet-config.json';
 
