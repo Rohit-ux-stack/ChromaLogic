@@ -52,6 +52,7 @@ import { ImageBlobUploader } from './ImageBlobUploader';
 import { MultiImageUploader } from './MultiImageUploader';
 import { formatAuthError } from '../utils/authErrors';
 import { DesignsAdminTab } from './DesignsAdminTab';
+import { estimateDocSize } from '../utils/firestoreSize';
 
 export function AdminVault() {
   const navigate = useNavigate();
@@ -1002,6 +1003,22 @@ function ProjectsAdminTab({
       return;
     }
 
+    const sizeCheck = estimateDocSize(editImages, {
+      title: editTitle,
+      description: editDescription,
+      techStack: editTechStack,
+      purpose: editPurpose,
+      story: editStory,
+      howItWorks: editHowItWorks,
+    });
+    if (sizeCheck.overLimit) {
+      onNotify(
+        `These images total ${sizeCheck.formatted}, over Firestore's 1MB-per-document limit. Remove a screenshot or two, or re-crop some smaller, before saving.`,
+        'error'
+      );
+      return;
+    }
+
     setSavingEdit(true);
     try {
       const docRef = doc(db, 'content', editingProject.id);
@@ -1038,6 +1055,22 @@ function ProjectsAdminTab({
   const handleSaveDraft = async (draft: ProjectDraft) => {
     if (!draft.title.trim()) {
       onNotify('Project title is required.', 'error');
+      return;
+    }
+
+    const sizeCheck = estimateDocSize(draft.images, {
+      title: draft.title,
+      description: draft.description,
+      techStack: draft.techStack,
+      purpose: draft.purpose,
+      story: draft.story,
+      howItWorks: draft.howItWorks,
+    });
+    if (sizeCheck.overLimit) {
+      onNotify(
+        `These images total ${sizeCheck.formatted}, over Firestore's 1MB-per-document limit. Remove a screenshot or two, or re-crop some smaller, before saving.`,
+        'error'
+      );
       return;
     }
 
