@@ -15,6 +15,7 @@ export function ProjectsSection({ projects, onOpenVideo }: ProjectsSectionProps)
   const { ref: sectionRef, isRevealed } = useScrollReveal({ threshold: 0.1 });
   const hasProjects = Boolean(projects && projects.length > 0);
   const [activeProject, setActiveProject] = useState<ProjectData | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   return (
     <section 
@@ -52,7 +53,10 @@ export function ProjectsSection({ projects, onOpenVideo }: ProjectsSectionProps)
                 index={idx}
                 isParentRevealed={isRevealed}
                 onOpenVideo={onOpenVideo}
-                onOpenDetails={(p) => setActiveProject(p)}
+                onOpenDetails={(p, imgIdx) => {
+                  setActiveProject(p);
+                  setActiveImageIndex(imgIdx ?? 0);
+                }}
               />
             ))}
           </div>
@@ -75,6 +79,7 @@ export function ProjectsSection({ projects, onOpenVideo }: ProjectsSectionProps)
         project={activeProject}
         onClose={() => setActiveProject(null)}
         onOpenVideo={onOpenVideo}
+        initialImageIndex={activeImageIndex}
       />
     </section>
   );
@@ -86,7 +91,7 @@ interface ProjectCardProps {
   index: number;
   isParentRevealed: boolean;
   onOpenVideo?: (url: string) => void;
-  onOpenDetails: (project: ProjectData) => void;
+  onOpenDetails: (project: ProjectData, imageIndex?: number) => void;
 }
 
 function ProjectCard({
@@ -122,7 +127,7 @@ function ProjectCard({
                 images={images}
                 alt={project.title}
                 aspectClassName="aspect-video"
-                onImageClick={() => onOpenDetails(project)}
+                onImageClick={(idx) => onOpenDetails(project, idx)}
               />
               <button
                 type="button"
