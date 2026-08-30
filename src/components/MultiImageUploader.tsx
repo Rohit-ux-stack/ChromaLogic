@@ -27,6 +27,18 @@ export function MultiImageUploader({
   const [activePreviewIdx, setActivePreviewIdx] = useState(0);
   const dragItemIndex = useRef<number | null>(null);
   const [isReadingFiles, setIsReadingFiles] = useState(false);
+  // Shadow array (index-aligned with `value`) tracking the true uncropped
+  // source for each image, when we have it. This is populated only for
+  // images cropped in the current session — images loaded from a saved
+  // project (previous sessions) never had their raw original persisted,
+  // so re-editing those still falls back to re-cropping the saved output.
+  const [originals, setOriginals] = useState<(string | null)[]>(() => value.map(() => null));
+  if (originals.length !== value.length) {
+    // Defensive resync if `value` was replaced from outside this component
+    // (e.g. switching which project is being edited) without going through
+    // our own handlers below.
+    setOriginals(value.map((_, i) => originals[i] ?? null));
+  }
 
   const readFilesAsDataUrls = (files: FileList | File[]): Promise<string[]> => {
     const arr = Array.from(files).filter((f) => f.type.startsWith('image/'));
@@ -75,13 +87,18 @@ export function MultiImageUploader({
 
   const handleCropComplete = (results: CropResult[]) => {
     if (reeditIndex !== null) {
-      // Re-editing a single existing image
+      // Re-editing a single existing image. Keep whatever original we already
+      // had tracked for this slot (it doesn't change just because we cropped
+      // it again) so future re-edits keep working from the true source.
       const next = [...value];
       next[reeditIndex] = results[0].dataUrl;
       onChange(next);
       setReeditIndex(null);
     } else {
+      // Fresh batch upload: `pendingSources` holds the true, uncropped
+      // originals in the same order as `results`, so remember them.
       onChange([...value, ...results.map((r) => r.dataUrl)]);
+      setOriginals((prev) => [...prev, ...(pendingSources ?? results.map(() => null))]);
     }
     setPendingSources(null);
   };
@@ -89,6 +106,7 @@ export function MultiImageUploader({
   const handleRemove = (idx: number) => {
     const next = value.filter((_, i) => i !== idx);
     onChange(next);
+    setOriginals((prev) => prev.filter((_, i) => i !== idx));
     if (activePreviewIdx >= next.length) setActivePreviewIdx(Math.max(0, next.length - 1));
   };
 
@@ -106,6 +124,12 @@ export function MultiImageUploader({
     const next = [...value];
     const [moved] = next.splice(dragItemIndex.current, 1);
     next.splice(idx, 0, moved);
+    setOriginals((prev) => {
+      const nextOrig = [...prev];
+      const [movedOrig] = nextOrig.splice(dragItemIndex.current as number, 1);
+      nextOrig.splice(idx, 0, movedOrig);
+      return nextOrig;
+    });
     dragItemIndex.current = idx;
     onChange(next);
   };
@@ -119,6 +143,11 @@ export function MultiImageUploader({
     const next = [...value];
     [next[idx], next[target]] = [next[target], next[idx]];
     onChange(next);
+    setOriginals((prev) => {
+      const nextOrig = [...prev];
+      [nextOrig[idx], nextOrig[target]] = [nextOrig[target], nextOrig[idx]];
+      return nextOrig;
+    });
   };
 
   const hasImages = value.length > 0;
@@ -155,7 +184,7 @@ export function MultiImageUploader({
             <img
               src={value[activePreviewIdx]}
               alt={`Image ${activePreviewIdx + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
             {value.length > 1 && (
               <>
@@ -342,10 +371,12 @@ export function MultiImageUploader({
         />
       )}
 
-      {/* Cropper for re-editing one already-saved image */}
+      {/* Cropper for re-editing one already-saved image. Uses the tracked
+          uncropped original when we have one (images cropped earlier in this
+          session) so re-editing doesn't compound crops on top of crops. */}
       {reeditIndex !== null && (
         <ImageCropperModal
-          sources={[value[reeditIndex]]}
+          sources={[originals[reeditIndex] ?? value[reeditIndex]]}
           title={`Edit Image ${reeditIndex + 1}`}
           onCancel={() => setReeditIndex(null)}
           onComplete={handleCropComplete}
