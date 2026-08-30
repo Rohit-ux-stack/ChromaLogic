@@ -486,3 +486,75 @@
   }
 }
 
+/* ===================================================
+   MISSING UTILITY CLASSES (carousels, modals, cropper)
+   Previously referenced in JSX with no matching rules —
+   scrollbars stayed visible and the crop guide grid never
+   rendered. Defined here so the intended polish actually shows.
+   =================================================== */
+
+/* Hide scrollbars on horizontally/vertically scrollable containers
+   while keeping them scrollable (carousels, thumbnail strips). */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Image carousel (ImageCarousel.tsx) */
+.carousel-track {
+  scrollbar-width: none;
+}
+.carousel-slide {
+  scroll-snap-stop: always;
+}
+.carousel-img {
+  -webkit-user-drag: none;
+}
+.carousel-nav-btn {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Project details modal (ProjectModal.tsx) */
+.project-modal-backdrop {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.project-modal-panel {
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
+/* Image cropper modal (ImageCropperModal.tsx) */
+.cropper-modal-backdrop {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.cropper-modal-panel {
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* Crop stage: the draggable/zoomable image area inside the cropper */
+.cropper-stage img {
+  -webkit-user-drag: none;
+}
+
+/* Rule-of-thirds crop guide grid, overlaid on the crop stage */
+.cropper-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.7) 1px, transparent 1px);
+  background-size: 33.333% 100%, 66.666% 100%, 100% 33.333%, 100% 66.666%;
+  background-repeat: no-repeat;
+  background-position: 33.333% 0, 66.666% 0, 0 33.333%, 0 66.666%;
+}
+
+
