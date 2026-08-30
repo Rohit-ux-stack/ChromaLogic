@@ -265,6 +265,17 @@ export function ImageCropperModal({
   }, [activeAspectRatio]);
   const previewScaleFactor = previewFrame.width / frame.width;
 
+  // Flag when the source image doesn't have enough real pixels to cover the
+  // crop frame at 1:1 — it'll have to be stretched to fill it, which softens
+  // the result. Purely informational; cropping still works fine.
+  const isLowResSource = useMemo(() => {
+    if (!current.natural) return false;
+    const swapped = current.transform.rotation % 180 !== 0;
+    const effFrameW = swapped ? frame.height : frame.width;
+    const effFrameH = swapped ? frame.width : frame.height;
+    return current.natural.width < effFrameW || current.natural.height < effFrameH;
+  }, [current.natural, current.transform.rotation, frame]);
+
   const goTo = (newIndex: number) => {
     setIndex(Math.min(Math.max(newIndex, 0), sources.length - 1));
   };
@@ -387,6 +398,11 @@ export function ImageCropperModal({
               <Move className="w-3 h-3" />
               <span>Drag to reposition &bull; Scroll / pinch to zoom</span>
             </div>
+            {isLowResSource && (
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber-400 max-w-[340px] text-center">
+                <span>⚠ Source image is low-resolution for this crop &mdash; result may look soft.</span>
+              </div>
+            )}
           </div>
 
           {/* Controls + Live Preview */}
