@@ -645,7 +645,6 @@ function ProfileAdminTab({
 }) {
   const [name, setName] = useState('Rohit Banerjee');
   const [photoUrl, setPhotoUrl] = useState('');
-  const [ogBannerUrl, setOgBannerUrl] = useState('');
   const [tagline, setTagline] = useState('');
   const [bio, setBio] = useState('');
   const [email, setEmail] = useState('');
@@ -664,7 +663,6 @@ function ProfileAdminTab({
     if (initialProfile) {
       setName(initialProfile.name || 'Rohit Banerjee');
       setPhotoUrl(initialProfile.photoUrl || '');
-      setOgBannerUrl(initialProfile.ogBannerUrl || '');
       setTagline(initialProfile.tagline || '');
       setBio(initialProfile.bio || '');
       setEmail(initialProfile.email || '');
@@ -690,7 +688,6 @@ function ProfileAdminTab({
         type: 'profile',
         name: name.trim() || 'Rohit Banerjee',
         photoUrl: photoUrl.trim(),
-        ogBannerUrl: ogBannerUrl.trim(),
         tagline: tagline.trim(),
         bio: bio.trim(),
         email: email.trim(),
@@ -757,18 +754,7 @@ function ProfileAdminTab({
           recommendedAspect="1:1"
         />
 
-        {/* Field 3: OG Banner Image Blob Upload + Live 1200:630 Preview */}
-        <ImageBlobUploader
-          idPrefix="profile-ogbanner"
-          label="OG Social Share Banner (Base64 Blob Storage)"
-          helperText="Upload a 1200×630px social card preview image for Twitter, LinkedIn, and messaging link unfurls."
-          value={ogBannerUrl}
-          onChange={(newBlob) => setOgBannerUrl(newBlob)}
-          previewShape="banner"
-          recommendedAspect="1200:630"
-        />
-
-        {/* Field 4: Tagline */}
+        {/* Field 3: Tagline */}
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
             Tagline
@@ -783,7 +769,7 @@ function ProfileAdminTab({
           />
         </div>
 
-        {/* Field 5: Bio */}
+        {/* Field 4: Bio */}
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
             Bio
@@ -798,7 +784,7 @@ function ProfileAdminTab({
           />
         </div>
 
-        {/* Field 6 & 7: Email and Location */}
+        {/* Field 5 & 6: Email and Location */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
@@ -829,7 +815,7 @@ function ProfileAdminTab({
           </div>
         </div>
 
-        {/* Field 8: Skills */}
+        {/* Field 7: Skills */}
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
             Skills (Comma-separated)
