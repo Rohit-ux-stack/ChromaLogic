@@ -8,7 +8,7 @@ export interface ImageUploadOptions {
   /** Target document ID in Firestore 'content' collection */
   docId?: string;
   /** Field name to update in the Firestore document */
-  fieldName?: 'photoUrl' | 'ogBannerUrl' | 'imageUrl' | string;
+  fieldName?: 'photoUrl' | 'imageUrl' | string;
   /** Max pixel dimension (width or height) to scale down to */
   maxDimension?: number;
   /** Image compression quality (0.1 to 1.0) */
