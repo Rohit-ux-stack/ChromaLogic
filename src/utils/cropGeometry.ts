@@ -159,6 +159,24 @@ export function renderCroppedImage(
   const cropLeft = centerXNat - natCropW / 2;
   const cropTop = centerYNat - natCropH / 2;
 
+  let localTargetW = swapped ? targetH : targetW;
+  let localTargetH = swapped ? targetW : targetH;
+
+  // Never manufacture pixels the source doesn't have: if the natural crop
+  // region (natCropW x natCropH) has fewer pixels than the requested output,
+  // scale the output down to match the source's real resolution instead of
+  // upscaling it (which just produces a soft/blurry result). Only caps when
+  // it would otherwise be an upscale (capFactor < 1); a source with plenty
+  // of resolution is unaffected.
+  const capFactor = Math.min(1, natCropW / localTargetW, natCropH / localTargetH);
+  if (capFactor < 1 && Number.isFinite(capFactor) && capFactor > 0) {
+    localTargetW = Math.max(1, Math.round(localTargetW * capFactor));
+    localTargetH = Math.max(1, Math.round(localTargetH * capFactor));
+  }
+
+  targetW = swapped ? localTargetH : localTargetW;
+  targetH = swapped ? localTargetW : localTargetH;
+
   const canvas = document.createElement('canvas');
   canvas.width = targetW;
   canvas.height = targetH;
@@ -168,9 +186,6 @@ export function renderCroppedImage(
   }
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-
-  const localTargetW = swapped ? targetH : targetW;
-  const localTargetH = swapped ? targetW : targetH;
 
   ctx.save();
   ctx.translate(targetW / 2, targetH / 2);
