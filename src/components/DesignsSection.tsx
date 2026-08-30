@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Palette, ExternalLink, Sparkles, X, Eye, Layers } from 'lucide-react';
 import type { DesignData } from '../types';
 import { useScrollReveal } from '../hooks/useScrollReveal';
@@ -112,7 +113,7 @@ export function DesignsSection({ designs = [] }: DesignsSectionProps) {
       </div>
 
       {/* High-Res Liquid Glass Lightbox Modal */}
-      {activePreview && (
+      {activePreview && createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -200,7 +201,8 @@ export function DesignsSection({ designs = [] }: DesignsSectionProps) {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
