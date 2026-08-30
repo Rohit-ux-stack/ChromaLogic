@@ -3,6 +3,7 @@ import { Palette, Plus, Trash2, Edit2, X, Save, Sparkles, ExternalLink, RefreshC
 import { db, collection, doc, setDoc, addDoc, deleteDoc, handleFirestoreError, OperationType } from '../firebase';
 import type { DesignData } from '../types';
 import { MultiImageUploader } from './MultiImageUploader';
+import { estimateDocSize } from '../utils/firestoreSize';
 
 interface DesignsAdminTabProps {
   designs: DesignData[];
@@ -99,6 +100,20 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
       return;
     }
 
+    const sizeCheck = estimateDocSize(editImages, {
+      title: editTitle,
+      category: editCategory,
+      clientOrTool: editClientOrTool,
+      description: editDescription,
+    });
+    if (sizeCheck.overLimit) {
+      onNotify(
+        `These images total ${sizeCheck.formatted}, over Firestore's 1MB-per-document limit. Remove an image or two, or re-crop some smaller, before saving.`,
+        'error'
+      );
+      return;
+    }
+
     setSavingEdit(true);
     try {
       const docRef = doc(db, 'content', editingDesign.id);
@@ -132,6 +147,20 @@ export function DesignsAdminTab({ designs, onNotify }: DesignsAdminTabProps) {
   const handleSaveDraft = async (draft: DesignDraft) => {
     if (!draft.title.trim()) {
       onNotify('Artwork title is required.', 'error');
+      return;
+    }
+
+    const sizeCheck = estimateDocSize(draft.images, {
+      title: draft.title,
+      category: draft.category,
+      clientOrTool: draft.clientOrTool,
+      description: draft.description,
+    });
+    if (sizeCheck.overLimit) {
+      onNotify(
+        `These images total ${sizeCheck.formatted}, over Firestore's 1MB-per-document limit. Remove an image or two, or re-crop some smaller, before saving.`,
+        'error'
+      );
       return;
     }
 
