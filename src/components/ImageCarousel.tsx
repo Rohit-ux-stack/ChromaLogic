@@ -11,6 +11,8 @@ export interface ImageCarouselProps {
   /** Show numeric counter badge (e.g. "2 / 5") instead of dots when there are many images. */
   showCounter?: boolean;
   rounded?: string;
+  /** Slide index to start on (e.g. the thumbnail the user clicked). Defaults to 0. */
+  initialIndex?: number;
 }
 
 /**
@@ -26,12 +28,26 @@ export function ImageCarousel({
   onImageClick,
   showCounter = false,
   rounded = '',
+  initialIndex = 0,
 }: ImageCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const safeImages = images.length > 0 ? images : [];
+  const clampedInitialIndex = Math.max(0, Math.min(initialIndex, safeImages.length - 1));
+  const [activeIndex, setActiveIndex] = useState(clampedInitialIndex);
   const [loadedFlags, setLoadedFlags] = useState<boolean[]>(() => images.map(() => false));
 
-  const safeImages = images.length > 0 ? images : [];
+  // Jump (instantly, no animation) to the requested starting slide on mount —
+  // e.g. when opened from a specific thumbnail in a grid/carousel elsewhere.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || clampedInitialIndex === 0) return;
+    const child = track.children[clampedInitialIndex] as HTMLElement | undefined;
+    if (child) {
+      track.scrollLeft = child.offsetLeft;
+    }
+    // Only run once on mount for the initial position.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const scrollToIndex = useCallback((idx: number) => {
     const track = trackRef.current;
@@ -99,7 +115,7 @@ export function ImageCarousel({
                   return next;
                 })
               }
-              className={`w-full h-full object-cover transition-opacity duration-500 carousel-img ${
+              className={`w-full h-full object-contain transition-opacity duration-500 carousel-img ${
                 loadedFlags[idx] ? 'opacity-100' : 'opacity-0'
               } ${onImageClick ? 'cursor-pointer' : ''}`}
             />
