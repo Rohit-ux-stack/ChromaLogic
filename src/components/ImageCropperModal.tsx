@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   RotateCw,
@@ -304,7 +305,7 @@ export function ImageCropperModal({
 
   const isCircle = cropShape === 'circle';
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-lg flex items-center justify-center p-3 sm:p-6 cropper-modal-backdrop"
       role="dialog"
@@ -523,6 +524,7 @@ export function ImageCropperModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
