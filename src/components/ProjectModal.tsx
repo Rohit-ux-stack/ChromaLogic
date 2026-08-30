@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Github, Youtube, ExternalLink, Layers, Target, BookOpen, Cog, FolderGit2 } from 'lucide-react';
 import type { ProjectData } from '../types';
 import { ImageCarousel } from './ImageCarousel';
@@ -34,7 +35,7 @@ export function ProjectModal({ project, onClose, onOpenVideo }: ProjectModalProp
     .filter(Boolean);
   const hasYouTube = Boolean(project.youtubeUrl?.trim());
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -167,6 +168,7 @@ export function ProjectModal({ project, onClose, onOpenVideo }: ProjectModalProp
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
