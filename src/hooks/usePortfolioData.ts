@@ -63,7 +63,6 @@ export function usePortfolioData(): PortfolioData {
               tagline: docData.tagline || '',
               bio: docData.bio || '',
               photoUrl: docData.photoUrl || '',
-              ogBannerUrl: docData.ogBannerUrl || '',
               email: docData.email || '',
               location: docData.location || '',
               skills: docData.skills || '',
