@@ -7,7 +7,6 @@ export interface ProfileData {
   tagline?: string;
   bio?: string;
   photoUrl?: string;
-  ogBannerUrl?: string;
   email?: string;
   location?: string;
   skills?: string;
