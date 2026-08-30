@@ -8,9 +8,11 @@ interface ProjectModalProps {
   project: ProjectData | null;
   onClose: () => void;
   onOpenVideo?: (url: string) => void;
+  /** Which image the carousel should open on (e.g. the thumbnail that was clicked). */
+  initialImageIndex?: number;
 }
 
-export function ProjectModal({ project, onClose, onOpenVideo }: ProjectModalProps) {
+export function ProjectModal({ project, onClose, onOpenVideo, initialImageIndex = 0 }: ProjectModalProps) {
   // Lock background scroll while the modal is open & support Escape-to-close
   useEffect(() => {
     if (!project) return;
@@ -64,6 +66,7 @@ export function ProjectModal({ project, onClose, onOpenVideo }: ProjectModalProp
               alt={project.title}
               aspectClassName="aspect-video"
               showCounter
+              initialIndex={initialImageIndex}
             />
           ) : (
             <div className="aspect-video w-full bg-[#FAF7F2] flex items-center justify-center">
