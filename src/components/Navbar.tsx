@@ -57,7 +57,7 @@ export function Navbar({ onHeightChange }: NavbarProps) {
       { id: 'designs-section', label: 'Graphic Designs', icon: Palette },
       { id: 'videos-section', label: 'Videos', icon: Video },
       { id: 'socials-section', label: 'Socials', icon: Share2 },
-      { id: 'resume-section', label: 'Resume', icon: FileText },
+      { id: 'resume-section', label: 'My Resume', icon: FileText },
     ];
   }, []);
 
